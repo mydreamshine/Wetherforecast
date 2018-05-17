@@ -1,44 +1,11 @@
-import random
-import json
-import os
-
 from pico2d import *
-
 import Framework
+import Load
 
 
 name = "MainState"
-
-boy = None
-grass = None
-font = None
-
-
-class Grass:
-    def __init__(self):
-        self.image = load_image('grass.png')
-
-    def draw(self):
-        self.image.draw(400, 30)
-
-
-class Boy:
-    def __init__(self):
-        self.x, self.y = 0, 90
-        self.frame = 0
-        self.image = load_image('run_animation.png')
-        self.dir = 1
-
-    def update(self):
-        self.frame = (self.frame + 1) % 8
-        self.x += self.dir
-        if self.x >= 800:
-            self.dir = -1
-        elif self.x <= 0:
-            self.dir = 1
-
-    def draw(self):
-        self.image.clip_draw(self.frame * 100, 0, 100, 100, self.x, self.y)
+image = Load.image
+MouseX, MouseY = 0, 0
 
 
 def enter():
@@ -58,6 +25,13 @@ def resume():
 
 
 def handle_events():
+    global MouseX, MouseY
+    events = get_events()
+    for event in events:
+        if event.type == SDL_QUIT:
+            Framework.quit()
+        elif event.type == SDL_WINDOW_MOUSE_FOCUS:
+            MouseX, MouseY = event.x, event.y
     pass
 
 
@@ -66,6 +40,7 @@ def update():
 
 
 def draw():
+    image["Background_Sky"].draw(image["Background_Sky"].w/2, image["Background_Sky"].h/2)
     pass
 
 
