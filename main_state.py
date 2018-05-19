@@ -1,4 +1,4 @@
-from pico2d import *
+from pico2d import*
 import Framework
 import Load
 
