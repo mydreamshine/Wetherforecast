@@ -2,7 +2,7 @@ from pico2d import *
 import json
 
 
-def LoadFileFrom(Filepath=None):
+def LoadImageFrom(Filepath=None):
     if not Filepath:
         return
     else:
@@ -13,12 +13,16 @@ def LoadFileFrom(Filepath=None):
 
         Object_list_source = {}
 
-        test = load_image("TestFrame.png")
-
         for name in Dic_imagepath:
             Object_list_source[name] = load_image(Dic_imagepath[name])
 
         return Object_list_source
 
 
-image = LoadFileFrom("Data\\Bin\\ResourcePath.json")
+image = None
+
+
+def ReleaseResource():
+    global image
+    if image:
+        image.clear()
