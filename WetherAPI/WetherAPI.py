@@ -1,4 +1,3 @@
-# import xml.etree.ElementTree as ET
 import urllib.request
 import urllib.parse
 import xmltodict
@@ -6,6 +5,31 @@ import json
 import timeit
 from datetime import datetime
 from datetime import timedelta
+
+Addr = dict()
+Addr[0] = "시흥"
+Addr[1] = "서울"
+Addr[2] = "인천"
+Addr[3] = "부산"
+Addr[4] = "대전"
+Addr[5] = "대구"
+Addr[6] = "울산"
+Addr[7] = "제주"
+Addr[8] = "수원"
+Addr[9] = "춘천"
+Addr[10] = "강릉"
+Addr[11] = "광주"
+Addr[12] = "청주"
+Addr[13] = "안동"
+Addr[14] = "전주"
+Addr[15] = "포항"
+Addr[16] = "창원"
+Addr[17] = "여수"
+Addr[18] = "홍성"
+Addr[19] = "목포"
+Addr[20] = "울릉"
+Addr[21] = "독도"
+
 
 def conversionCoordToName(name):
     AddrDic = dict()
@@ -62,7 +86,8 @@ def getDustCurrent(Address):  # 미세먼지를 비롯한 여러 통합대기값
     Address, subAddress = conversionAddress(Address)
 
     url = "http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?"
-    key = "serviceKey=" + "Iq26py4%2BXq0dUHvM7eXZdaHnh3O8fDOQOTVjMw95Kh94fKJqLYh%2FZH%2BaZ7%2FD%2BojU7RJ6ERZXP8M%2BH%2BnL8a4cbQ%3D%3D"
+    key = "serviceKey=" + "oTDANY4hsh%2FaYtGulZR1hdreS4rwf6pcEU21%2Bk2x7U8uezVVbJ3valCtUCY3jFLjPW8G2cvbjA%2BzeBsbrhm6pQ%3D%3D"
+    # key = "serviceKey=" + "Iq26py4%2BXq0dUHvM7eXZdaHnh3O8fDOQOTVjMw95Kh94fKJqLYh%2FZH%2BaZ7%2FD%2BojU7RJ6ERZXP8M%2BH%2BnL8a4cbQ%3D%3D"
     numOfRows = "&numOfRows=" + str(200)
     sidoname = "&sidoName=" + urllib.parse.quote_plus(Address)  # 한글은 유니코드로 바꿔줘야 한다.
     ver = "&ver=" + "1.3"
@@ -75,15 +100,18 @@ def getDustCurrent(Address):  # 미세먼지를 비롯한 여러 통합대기값
 
     data_list = data_json['list']
     # print(data_list)
-    if subAddress:
-        for dict in data_list:
-            if dict['stationName'] == subAddress:
-                return int(dict['khaiValue']), int(dict['pm10Value'])
-    else:
-        if len(data_list) > 0:
-            return int(data_list[0]['khaiValue']), int(data_list[0]['pm10Value'])
+    try:
+        if subAddress:
+            for dict in data_list:
+                if dict['stationName'] == subAddress:
+                    return int(dict['khaiValue']), int(dict['pm10Value'])
         else:
-            return None, None
+            if len(data_list) > 0:
+                return int(data_list[0]['khaiValue']), int(data_list[0]['pm10Value'])
+            else:
+                return None, None
+    except:
+        return None, None
 
 
 def getWeatherTomorrow(address, OffsetDay=0, OffsetHour=0):  # 내일 내일 모래 날씨
@@ -92,8 +120,14 @@ def getWeatherTomorrow(address, OffsetDay=0, OffsetHour=0):  # 내일 내일 모
     gridx = "gridx="+ str(nx)
     gridy = "&gridy=" + str(ny)
     api_url = url+gridx+gridy
+
+    T, S, P = None, None, None
     data = urllib.request.urlopen(api_url).read().decode('utf8')
+
+    # 동네예보 API에서 일시적인 ERROR가 났을 경우.
     data_dict = xmltodict.parse(data)
+    if data_dict["response"]["header"]["resultMsg"] == 'SERVICE ACCESS DENIED ERROR.':
+        return T, S, P
     data_list = data_dict['wid']['body']['data']
     # print(data_list)
 
@@ -145,7 +179,7 @@ def getWeatherToday(address): #오늘날씨
 
     # print(data_list)
 
-    currentHour = CurretnTime.strftime("%I")
+    currentHour = CurretnTime.strftime("%H")
 
     for item in data_list:
         if item['category'] == 'T1H' and currentHour == str(item['baseTime'])[0:2]:
@@ -164,7 +198,6 @@ class WetherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
     def __init__(self, Address=None):
         self.__address = Address
         self.__day = None
-        self.__hour = None
         self.__khaiValue = None
         self.__PM10Value = None
         self.__temperature = None
@@ -177,12 +210,11 @@ class WetherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
     def Update(self, Address, OffsetDay=0, OffsetHour=0):
 
         # 오늘 날짜와 시간 부여(Offset에 따라 증가된 날짜 시간 부여 가능)
-        self.__address, self.__day, self.__hour = Address, datetime.today(), datetime.today().hour + OffsetHour
-        self.__day = self.__day.replace(day=self.__day.day + OffsetDay, hour=self.__day.hour + OffsetHour)
+        self.__address, self.__day = Address, datetime.today() + timedelta(days=OffsetDay,hours=OffsetHour)
 
         # 통합대기수치값과 미세먼지농도 부여
         start = timeit.default_timer()
-        # self.__khaiValue, self.__PM10Value = getDustCurrent(Address)
+        self.__khaiValue, self.__PM10Value = getDustCurrent(Address)
         print("getDustCurrent() 실행시간:", timeit.default_timer() - start)
 
         # Offset에 따른 날짜와 시간에 맞추어 온도, 기상상태, 우/설상태 부여
@@ -198,9 +230,6 @@ class WetherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
 
     def getDay(self):
         return self.__day
-
-    def getHour(self):
-        return self.__hour
 
     def getkhaiValue(self):
         return self.__khaiValue
@@ -254,7 +283,7 @@ class WetherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
             return '흐림'
 
     def getPtyState(self):
-        if self.__ptyValue == None:
+        if self.__ptyValue is None:
             return '측정정보없음'
         elif self.__ptyValue == 0:
             return '없음'
@@ -282,16 +311,17 @@ class WetherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
         print('--------------------------', end='\n\n')
 
 
+'''
 Wether = dict()
 
 start = timeit.default_timer()
-Wether["부산"] = WetherInformation("부산")
 Wether["서울"] = WetherInformation("서울")
 Wether["인천"] = WetherInformation("인천")
+Wether["수원"] = WetherInformation("수원")
 Wether["시흥"] = WetherInformation("시흥")
 Wether["춘천"] = WetherInformation("춘천")
 Wether["강릉"] = WetherInformation("강릉")
-Wether["수원"] = WetherInformation("수원")
+Wether["부산"] = WetherInformation("부산")
 Wether["홍성"] = WetherInformation("홍성")
 Wether["청주"] = WetherInformation("청주")
 Wether["대전"] = WetherInformation("대전")
@@ -313,3 +343,4 @@ for dest in Wether.values():
     dest.print()
 
 print("총 실행시간:", timeit.default_timer() - start)
+'''
