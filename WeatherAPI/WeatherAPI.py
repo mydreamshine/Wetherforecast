@@ -5,6 +5,7 @@ import json
 import timeit
 from datetime import datetime
 from datetime import timedelta
+import Load
 
 Addr = dict()
 Addr[0] = "시흥"
@@ -30,6 +31,29 @@ Addr[19] = "목포"
 Addr[20] = "울릉"
 Addr[21] = "독도"
 
+AddrXY = dict()
+AddrXY["시흥"] = 190, 450
+AddrXY["서울"] = 220, 480
+AddrXY["인천"] = 150, 450
+AddrXY["부산"] = 345, 205
+AddrXY["대전"] = 240, 310
+AddrXY["대구"] = 300, 260
+AddrXY["울산"] = 378, 255
+AddrXY["제주"] = 170, 40
+AddrXY["수원"] = 200, 393
+AddrXY["춘천"] = 265, 490
+AddrXY["강릉"] = 330, 475
+AddrXY["광주"] = 205, 195
+AddrXY["청주"] = 240, 375
+AddrXY["안동"] = 310, 350
+AddrXY["전주"] = 200, 265
+AddrXY["포항"] = 345, 300
+AddrXY["창원"] = 305, 195
+AddrXY["여수"] = 255, 170
+AddrXY["홍성"] = 165, 360
+AddrXY["목포"] = 165, 155
+AddrXY["울릉"] = 395, 480
+AddrXY["독도"] = 423, 395
 
 def conversionCoordToName(name):
     AddrDic = dict()
@@ -55,7 +79,6 @@ def conversionCoordToName(name):
     AddrDic["제주"] = 52, 38
     AddrDic["울릉"] = 127, 127
     AddrDic["독도"] = 144, 123
-
     return AddrDic[name]
 
 
@@ -86,8 +109,8 @@ def getDustCurrent(Address):  # 미세먼지를 비롯한 여러 통합대기값
     Address, subAddress = conversionAddress(Address)
 
     url = "http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?"
-    key = "serviceKey=" + "oTDANY4hsh%2FaYtGulZR1hdreS4rwf6pcEU21%2Bk2x7U8uezVVbJ3valCtUCY3jFLjPW8G2cvbjA%2BzeBsbrhm6pQ%3D%3D"
-    # key = "serviceKey=" + "Iq26py4%2BXq0dUHvM7eXZdaHnh3O8fDOQOTVjMw95Kh94fKJqLYh%2FZH%2BaZ7%2FD%2BojU7RJ6ERZXP8M%2BH%2BnL8a4cbQ%3D%3D"
+    # key = "serviceKey=" + "oTDANY4hsh%2FaYtGulZR1hdreS4rwf6pcEU21%2Bk2x7U8uezVVbJ3valCtUCY3jFLjPW8G2cvbjA%2BzeBsbrhm6pQ%3D%3D" # 성호꺼
+    key = "serviceKey=" + "Iq26py4%2BXq0dUHvM7eXZdaHnh3O8fDOQOTVjMw95Kh94fKJqLYh%2FZH%2BaZ7%2FD%2BojU7RJ6ERZXP8M%2BH%2BnL8a4cbQ%3D%3D" #명준꺼
     numOfRows = "&numOfRows=" + str(200)
     sidoname = "&sidoName=" + urllib.parse.quote_plus(Address)  # 한글은 유니코드로 바꿔줘야 한다.
     ver = "&ver=" + "1.3"
@@ -309,4 +332,51 @@ class WeatherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
         AMPM = '오전' if AMPM == 'AM' else '오후'
         print('업데이트 ', self.__day.strftime("%m/%d"), AMPM, self.__day.strftime("%I:%M"))
         print('--------------------------', end='\n\n')
+
+
+class WeatherInformationSub:
+
+    def __init__(self, city, x, y):
+        self.city = city
+        self.x, self.y = x, y
+        self.Active = False
+
+    def Update(self):
+        Load.Weather[self.city].Update(self.city)
+        self.Active = True
+
+    def draw(self):
+        # 기상 정보 배경이미지 출력
+        Load.image['Background_RegionLayout'].draw(self.x, self.y)
+
+        # 기상 정보 이미지 출력
+        info_pty = Load.Weather[self.city].getPtyState()
+        info_sky = Load.Weather[self.city].getSkyState()
+        if info_pty == '측정정보없음' or info_pty == '없음':
+            if info_pty == info_sky == '측정정보없음':
+                Load.image['Sun_small'].draw(self.x - 3, self.y + 4)
+            elif info_sky == '구름많음' or info_sky == '흐림':
+                Load.image['Cloud_small'].draw(self.x-3, self.y+4)
+            elif 6 < int(Load.Weather[self.city].getDay().strftime("%H")) < 18:
+                Load.image['Sun_small'].draw(self.x-3, self.y+4)
+            else:
+                Load.image['Moon_small'].draw(self.x-3, self.y+4)
+        else:
+            if info_pty == '비' or info_pty == '비/눈':
+                Load.image['Rain_small'].draw(self.x-3, self.y+4)
+            else:
+                Load.image['Snow_small'].draw(self.x-3, self.y+4)
+
+        # 도시 이름 그리기
+        w, h = Load.font[9].getpixelSize_unicode(self.city)
+        interval_height = Load.image['Background_RegionLayout'].h/2
+        Load.font[9].draw_unicode(self.x-w/2-1, self.y+interval_height+h/2 , self.city, (0, 0, 0))
+
+        # 현재 온도 그리기
+        t = Load.Weather[self.city].getTemperature()
+        if t is None: t = 0
+        w, h = Load.font[10].getpixelSize(str(t))
+        Load.font[10].draw(self.x-w/2-1, self.y-interval_height+h/2+4, str(t), (255, 0, 0))
+
+
 

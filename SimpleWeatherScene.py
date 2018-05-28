@@ -1,9 +1,10 @@
 from pico2d import*
 import Framework
 import Load
+import MapWeatherScene
 
-name = "MainState"
-city = "시흥"
+name = "SimpleWeatherScene"
+city = "서울"
 image, font, weather = None, None, None
 MouseX, MouseY = 0, 0
 
@@ -39,6 +40,19 @@ def handle_events():
             Framework.quit()
         elif event.type == SDL_MOUSEMOTION:
             MouseX, MouseY = event.x, (get_canvas_height() - 1) - event.y
+        elif event.type == SDL_MOUSEBUTTONDOWN:
+            MouseX, MouseY = event.x, (get_canvas_height() - 1) - event.y
+
+            info_Address = weather[city].getAdress()
+            if not info_Address:
+                info_Address = '측정정보없음'
+            else:
+                info_Address = ' ' + info_Address + '시  '
+            width, height = font[36].getpixelSize_unicode(info_Address)
+            CenterPointX, CenterPointY = get_canvas_width() / 2 - width / 2, get_canvas_height() / 4 + height / 2
+            x1, y1, x2, y2 = Load.GetCorners(CenterPointX, CenterPointY, width, height)
+            if Load.PointInRect(x1, y1, x2, y2, MouseX, MouseY):
+                Framework.change_state(MapWeatherScene)
     pass
 
 
@@ -94,7 +108,7 @@ def Scene_draw():
     if not info_Address:
         info_Address = '측정정보없음'
     else:
-        info_Address = info_Address + '시'
+        info_Address = ' ' + info_Address + '시  '
     w, h = font[36].getpixelSize_unicode(info_Address)
     font[36].draw_unicode(get_canvas_width() / 2 - w / 2, get_canvas_height() / 4 + h / 2, info_Address, (255, 255, 255))
 
@@ -112,7 +126,6 @@ def draw():
     clear_canvas()
     Scene_draw()
     update_canvas()
-    delay(0.01)
     pass
 
 
