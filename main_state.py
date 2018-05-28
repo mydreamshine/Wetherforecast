@@ -4,16 +4,16 @@ import Load
 
 name = "MainState"
 city = "시흥"
-image, font, wether = None, None, None
+image, font, weather = None, None, None
 MouseX, MouseY = 0, 0
 
 
 def enter():
-    global image, font, wether
+    global image, font, weather
     font = Load.font
     image = Load.image
-    wether = Load.Wether
-    wether[city].Update(city)
+    weather = Load.Weather
+    weather[city].Update(city)
     pass
 
 
@@ -47,12 +47,12 @@ def update():
 
 
 def Scene_draw():
-    global image, font, wether
+    global image, font, weather
 
     # 배경 그리기
-    info_sky = wether[city].getSkyState()
+    info_sky = weather[city].getSkyState()
     if info_sky == '측정정보없음' or info_sky == '맑음' or info_sky == '구름 조금':
-        if 6 < int(wether[city].getDay().strftime("%H")) < 18:
+        if 6 < int(weather[city].getDay().strftime("%H")) < 18:
             image['Background_Sky'].draw(get_canvas_width() / 2, get_canvas_height() / 2)
         else:
             image['Background_Blue'].draw(get_canvas_width() / 2, get_canvas_height() / 2)
@@ -60,7 +60,7 @@ def Scene_draw():
         image['Background_Black'].draw(get_canvas_width() / 2, get_canvas_height() / 2)
 
     # 현재 온도 그리기
-    info_tmp = wether[city].getTemperature()
+    info_tmp = weather[city].getTemperature()
     if not info_tmp:
         info_tmp = '측정정보없음'
     else:
@@ -70,11 +70,11 @@ def Scene_draw():
     font[62].draw_unicode(get_canvas_width() / 2 - w / 2, get_canvas_height() / 1.3 + h / 2, info_tmp, (255, 255, 255))
 
     # 기상 정보 이미지 출력
-    info_pty = wether[city].getPtyState()
+    info_pty = weather[city].getPtyState()
     if info_pty == '측정정보없음' or info_pty == '없음':
         if info_sky == '구름많음' or info_sky == '흐림':
             image['Cloud'].draw(get_canvas_width() / 2, get_canvas_height() / 1.7)
-        elif 6 < int(wether[city].getDay().strftime("%H")) < 18:
+        elif 6 < int(weather[city].getDay().strftime("%H")) < 18:
             image['Sun'].draw(get_canvas_width() / 2, get_canvas_height() / 1.7)
         else:
             image['Moon'].draw(get_canvas_width() / 2, get_canvas_height() / 1.7)
@@ -85,12 +85,12 @@ def Scene_draw():
             image['Snow'].draw(get_canvas_width() / 2, get_canvas_height() / 1.7)
 
     # 미세먼지 정보 출력
-    info_PM10 = wether[city].getPM10State()
+    info_PM10 = weather[city].getPM10State()
     w, h = font[26].getpixelSize_unicode(info_PM10)
     font[26].draw_unicode(get_canvas_width()/2 - w/2, get_canvas_height()/2.7 + h/2, info_PM10, (255, 255, 255))
 
     # 위치 정보 출력
-    info_Address = wether[city].getAdress()
+    info_Address = weather[city].getAdress()
     if not info_Address:
         info_Address = '측정정보없음'
     else:
@@ -99,7 +99,7 @@ def Scene_draw():
     font[36].draw_unicode(get_canvas_width() / 2 - w / 2, get_canvas_height() / 4 + h / 2, info_Address, (255, 255, 255))
 
     # 날짜 정보 출력
-    info_Day = wether[city].getDay()
+    info_Day = weather[city].getDay()
     AMPM = '오전' if info_Day.strftime("%p") == 'AM' else '오후'
     str_update = '업데이트 ' + info_Day.strftime("%m/%d") + ' ' + AMPM + ' ' + info_Day.strftime("%I:%M")
     w, h = font[21].getpixelSize_unicode(str_update)

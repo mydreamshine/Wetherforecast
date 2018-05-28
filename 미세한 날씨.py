@@ -13,7 +13,7 @@ import Framework
 import main_state
 import Load
 
-open_canvas(452, 650, 60, '미세한 날씨')
+open_canvas(452, 650, 60, caption='미세한 날씨')
 Load.PrePareResource()
 
 Framework.run(main_state)

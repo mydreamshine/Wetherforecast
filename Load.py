@@ -1,6 +1,6 @@
 from pico2d import *
 import json
-from WetherAPI import WetherAPI
+from WeatherAPI import WeatherAPI
 
 
 def LoadImageFrom(Filepath=None):
@@ -38,32 +38,32 @@ def LoadFontFrom(Filepath=None):
         return Object_dic_source
 
 
-def CreateEmptyWether():
+def CreateEmptyWeather():
     Object_dic_source = dict()
 
-    for index in WetherAPI.Addr.values():
-        Object_dic_source[index] = WetherAPI.WetherInformation()
+    for index in WeatherAPI.Addr.values():
+        Object_dic_source[index] = WeatherAPI.WeatherInformation()
 
     return Object_dic_source
 
 
 image = None
 font = None
-Wether = None
+Weather = None
 
 
 def PrePareResource():
-    global image, font, Wether
+    global image, font, Weather
     image = LoadImageFrom("Data\\Bin\\ResourcePath.json")
     font = LoadFontFrom("Data\\Font\\malgun.ttf")
-    Wether = CreateEmptyWether()
+    Weather = CreateEmptyWeather()
 
 
 def ReleaseResource():
-    global image, font, Wether
+    global image, font, Weather
     if image:
         image.clear()
     if font:
         font.clear()
-    if Wether:
-        Wether.clear()
+    if Weather:
+        Weather.clear()

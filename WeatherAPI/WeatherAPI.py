@@ -194,7 +194,7 @@ def getWeatherToday(address): #오늘날씨
     return T, S, P
 
 
-class WetherInformation:  # 지역에 따른 현재 통합대기상태, 미세먼지농도와 온도, 기상상태, 우천상태를 관리함
+class WeatherInformation:  # 지역에 따른 현재 통합대기상태, 미세먼지농도와 온도, 기상상태, 우천상태를 관리함
     def __init__(self, Address=None):
         self.__address = Address
         self.__day = None
@@ -310,37 +310,3 @@ class WetherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
         print('업데이트 ', self.__day.strftime("%m/%d"), AMPM, self.__day.strftime("%I:%M"))
         print('--------------------------', end='\n\n')
 
-
-'''
-Wether = dict()
-
-start = timeit.default_timer()
-Wether["서울"] = WetherInformation("서울")
-Wether["인천"] = WetherInformation("인천")
-Wether["수원"] = WetherInformation("수원")
-Wether["시흥"] = WetherInformation("시흥")
-Wether["춘천"] = WetherInformation("춘천")
-Wether["강릉"] = WetherInformation("강릉")
-Wether["부산"] = WetherInformation("부산")
-Wether["홍성"] = WetherInformation("홍성")
-Wether["청주"] = WetherInformation("청주")
-Wether["대전"] = WetherInformation("대전")
-Wether["안동"] = WetherInformation("안동")
-Wether["전주"] = WetherInformation("전주")
-Wether["대구"] = WetherInformation("대구")
-Wether["포항"] = WetherInformation("포항")
-Wether["울산"] = WetherInformation("울산")
-Wether["창원"] = WetherInformation("창원")
-Wether["여수"] = WetherInformation("여수")
-Wether["광주"] = WetherInformation("광주")
-Wether["목포"] = WetherInformation("목포")
-Wether["제주"] = WetherInformation("제주")
-Wether["울릉"] = WetherInformation("울릉")
-Wether["독도"] = WetherInformation("독도")
-
-
-for dest in Wether.values():
-    dest.print()
-
-print("총 실행시간:", timeit.default_timer() - start)
-'''
