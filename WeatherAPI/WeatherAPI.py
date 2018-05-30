@@ -109,8 +109,8 @@ def getDustCurrent(Address):  # 미세먼지를 비롯한 여러 통합대기값
     Address, subAddress = conversionAddress(Address)
 
     url = "http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?"
-    # key = "serviceKey=" + "oTDANY4hsh%2FaYtGulZR1hdreS4rwf6pcEU21%2Bk2x7U8uezVVbJ3valCtUCY3jFLjPW8G2cvbjA%2BzeBsbrhm6pQ%3D%3D" # 성호꺼
-    key = "serviceKey=" + "Iq26py4%2BXq0dUHvM7eXZdaHnh3O8fDOQOTVjMw95Kh94fKJqLYh%2FZH%2BaZ7%2FD%2BojU7RJ6ERZXP8M%2BH%2BnL8a4cbQ%3D%3D" #명준꺼
+    key = "serviceKey=" + "oTDANY4hsh%2FaYtGulZR1hdreS4rwf6pcEU21%2Bk2x7U8uezVVbJ3valCtUCY3jFLjPW8G2cvbjA%2BzeBsbrhm6pQ%3D%3D" # 성호꺼
+    #key = "serviceKey=" + "Iq26py4%2BXq0dUHvM7eXZdaHnh3O8fDOQOTVjMw95Kh94fKJqLYh%2FZH%2BaZ7%2FD%2BojU7RJ6ERZXP8M%2BH%2BnL8a4cbQ%3D%3D" #명준꺼
     numOfRows = "&numOfRows=" + str(200)
     sidoname = "&sidoName=" + urllib.parse.quote_plus(Address)  # 한글은 유니코드로 바꿔줘야 한다.
     ver = "&ver=" + "1.3"

@@ -10,7 +10,7 @@ else:
 
 from pico2d import *
 import Framework
-#import SimpleWeatherScene
+import SimpleWeatherScene
 import MapWeatherScene
 import Load
 

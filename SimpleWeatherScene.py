@@ -53,6 +53,19 @@ def handle_events():
             x1, y1, x2, y2 = Load.GetCorners(CenterPointX, CenterPointY, width, height)
             if Load.PointInRect(x1, y1, x2, y2, MouseX, MouseY):
                 Framework.change_state(MapWeatherScene)
+
+            width2, height2 = font[36].getpixelSize_unicode(info_Address)
+            CenterPointX2, CenterPointY2 = get_canvas_width() / 2 - width2 / 2, get_canvas_height() / 4 + height2 / 2
+            x11, y11, x22, y22 = Load.GetCorners(CenterPointX2, CenterPointY2, width2, height2)
+            if Load.PointInRect(x11, y11, x22, y22, MouseX, MouseY):
+                Framework.change_state(MapWeatherScene)
+
+            buttonW, buttonH = image['RefreshButton'].w, image['RefreshButton'].h
+            buttonX, buttonY = get_canvas_width() / 2, get_canvas_height() / 10.5
+            Buttonx1, Buttony1, Buttonx2, Buttony2 = Load.GetCorners(buttonX, buttonY, buttonW, buttonH)
+            if Load.PointInRect(Buttonx1, Buttony1, Buttonx2, Buttony2, MouseX, MouseY):
+                weather[city].Update(city)
+
     pass
 
 
@@ -99,7 +112,7 @@ def Scene_draw():
             image['Snow'].draw(get_canvas_width() / 2, get_canvas_height() / 1.7)
 
     # 미세먼지 정보 출력
-    info_PM10 = weather[city].getPM10State()
+    info_PM10 = '미세먼지:'+ weather[city].getPM10State()
     w, h = font[26].getpixelSize_unicode(info_PM10)
     font[26].draw_unicode(get_canvas_width()/2 - w/2, get_canvas_height()/2.7 + h/2, info_PM10, (255, 255, 255))
 

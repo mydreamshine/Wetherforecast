@@ -3,6 +3,7 @@ import Framework
 import Load
 from datetime import datetime
 import SimpleWeatherScene
+from WeatherAPI import WeatherAPI
 
 name = "MapWeatherScene"
 image, font, weather, weatherSub = None, None, None, None
@@ -56,6 +57,15 @@ def handle_events():
             x1, y1, x2, y2 = Load.GetCorners(CenterPointX, CenterPointY, width, height)
             if Load.PointInRect(x1, y1, x2, y2, MouseX,MouseY):
                 Framework.change_state(SimpleWeatherScene)
+
+            w, h = image["Background_RegionLayout"].w,image["Background_RegionLayout"].h
+            for weather_info in Load.WeatherSub.values():
+                x11, y11, x22, y22 = Load.GetCorners(weather_info.x, weather_info.y, w, h)
+                if Load.PointInRect(x11, y11, x22, y22, MouseX, MouseY):
+                    SimpleWeatherScene.city = weather_info.city
+                    Framework.change_state(SimpleWeatherScene)
+
+
 
 
 
