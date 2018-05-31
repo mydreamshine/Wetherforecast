@@ -4,7 +4,7 @@ import Load
 import MapWeatherScene
 
 name = "SimpleWeatherScene"
-city = "서울"
+city = "시흥"
 image, font, weather = None, None, None
 MouseX, MouseY = 0, 0
 
@@ -129,7 +129,11 @@ def Scene_draw():
                 draw_rectangle(X1, Y1, X2, Y2)
 
     # 미세먼지 정보 출력
-    info_PM10 = '    미세먼지: ' + weather[city].getPM10State()+'    '
+    info_PM10 = '    미세먼지: '
+    if weather[city].getPM10State() == '측정정보없음':
+        info_PM10 = '측정정보없음'
+    else:
+        info_PM10 = info_PM10 + weather[city].getPM10State() + '    '
     w, h = font[26].getpixelSize_unicode(info_PM10)
     CenterPointX, CenterPointY = get_canvas_width()/2 - w/2, get_canvas_height()/2.7 + h/2
     font[26].draw_unicode(CenterPointX, CenterPointY, info_PM10, (255, 255, 255))
