@@ -8,14 +8,20 @@ name = "SimpleWeatherScene"
 city = "서울"
 image, font, weather = None, None, None
 MouseX, MouseY = 0, 0
+FadeAlpha = 0.0
+ChangeScene = None
+EnterScene = True
 
 
 def enter():
-    global image, font, weather
+    global image, font, weather, FadeAlpha, ChangeScene, EnterScene
     font = Load.font
     image = Load.image
     weather = Load.Weather
     weather[city].Update(city)
+    FadeAlpha = 1.0
+    ChangeScene = None
+    EnterScene = True
     pass
 
 
@@ -32,7 +38,7 @@ def resume():
 
 
 def handle_events():
-    global MouseX, MouseY, city
+    global MouseX, MouseY, city, ChangeScene, EnterScene
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -44,52 +50,69 @@ def handle_events():
         elif event.type == SDL_MOUSEBUTTONDOWN:
             MouseX, MouseY = event.x, (get_canvas_height() - 1) - event.y
 
-            info_tmp = weather[city].getTemperature()
-            if not info_tmp:
-                info_tmp = '측정정보없음'
-            else:
-                info_tmp = str(info_tmp) + '˚'
-            w, h = font[62].getpixelSize_unicode(info_tmp)
-            x2, y2 = get_canvas_width() / 2 + w / 2, get_canvas_height() / 1.3 + h / 2
+            if not  EnterScene:
+                info_tmp = weather[city].getTemperature()
+                if not info_tmp:
+                    info_tmp = '측정정보없음'
+                else:
+                    info_tmp = str(info_tmp) + '˚'
+                w, h = font[62].getpixelSize_unicode(info_tmp)
+                x2, y2 = get_canvas_width() / 2 + w / 2, get_canvas_height() / 1.3 + h / 2
 
-            info_PM10 = '    미세먼지: '
-            if weather[city].getPM10State() == '측정정보없음':
-                info_PM10 = '측정정보없음'
-            else:
-                info_PM10 = info_PM10 + weather[city].getPM10State() + '    '
-            w, h = font[26].getpixelSize_unicode(info_PM10)
-            x1, y1 = get_canvas_width() / 2 - w / 2, get_canvas_height() / 2.7 - h / 2
+                info_PM10 = '    미세먼지: '
+                if weather[city].getPM10State() == '측정정보없음':
+                    info_PM10 = '측정정보없음'
+                else:
+                    info_PM10 = info_PM10 + weather[city].getPM10State() + '    '
+                w, h = font[26].getpixelSize_unicode(info_PM10)
+                x1, y1 = get_canvas_width() / 2 - w / 2, get_canvas_height() / 2.7 - h / 2
 
-            if Load.PointInRect(x1, y1, x2, y2, MouseX, MouseY):
-                DetailWeatherScene.city = city
-                Framework.change_state(DetailWeatherScene)
+                if Load.PointInRect(x1, y1, x2, y2, MouseX, MouseY):
+                    ChangeScene = DetailWeatherScene.name
 
-            info_Address = weather[city].getAdress()
-            if not info_Address:
-                info_Address = '측정정보없음'
-            else:
-                info_Address = ' ' + info_Address + '시  '
-            width, height = font[36].getpixelSize_unicode(info_Address)
-            CenterPointX, CenterPointY = get_canvas_width() / 2 - width / 2, get_canvas_height() / 4 + height / 2
-            x1, y1, x2, y2 = Load.GetCorners(CenterPointX, CenterPointY, width, height)
-            if Load.PointInRect(x1, y1, x2, y2, MouseX, MouseY):
-                Framework.change_state(MapWeatherScene)
+                info_Address = weather[city].getAdress()
+                if not info_Address:
+                    info_Address = '측정정보없음'
+                else:
+                    info_Address = ' ' + info_Address + '시  '
+                width, height = font[36].getpixelSize_unicode(info_Address)
+                CenterPointX, CenterPointY = get_canvas_width() / 2 - width / 2, get_canvas_height() / 4 + height / 2
+                x1, y1, x2, y2 = Load.GetCorners(CenterPointX, CenterPointY, width, height)
+                if Load.PointInRect(x1, y1, x2, y2, MouseX, MouseY):
+                    ChangeScene = MapWeatherScene.name
 
-            width2, height2 = font[36].getpixelSize_unicode(info_Address)
-            CenterPointX2, CenterPointY2 = get_canvas_width() / 2 - width2 / 2, get_canvas_height() / 4 + height2 / 2
-            x11, y11, x22, y22 = Load.GetCorners(CenterPointX2, CenterPointY2, width2, height2)
-            if Load.PointInRect(x11, y11, x22, y22, MouseX, MouseY):
-                Framework.change_state(MapWeatherScene)
-
-            buttonW, buttonH = image['RefreshButton'].w, image['RefreshButton'].h
-            buttonX, buttonY = get_canvas_width() / 2, get_canvas_height() / 10.5
-            Buttonx1, Buttony1, Buttonx2, Buttony2 = Load.GetCorners(buttonX, buttonY, buttonW, buttonH)
-            if Load.PointInRect(Buttonx1, Buttony1, Buttonx2, Buttony2, MouseX, MouseY):
-                weather[city].Update(city)
+                buttonW, buttonH = image['RefreshButton'].w, image['RefreshButton'].h
+                buttonX, buttonY = get_canvas_width() / 2, get_canvas_height() / 10.5
+                Buttonx1, Buttony1, Buttonx2, Buttony2 = Load.GetCorners(buttonX, buttonY, buttonW, buttonH)
+                if Load.PointInRect(Buttonx1, Buttony1, Buttonx2, Buttony2, MouseX, MouseY):
+                    weather[city].Update(city)
     pass
 
 
 def update():
+    pass
+
+
+def Scene_Fade_draw():
+    global image, FadeAlpha, ChangeScene, EnterScene
+
+    if EnterScene or ChangeScene is not None:
+        if EnterScene:
+            FadeAlpha -= 0.05
+            if FadeAlpha < 0.0: FadeAlpha = 0.0
+        elif ChangeScene is not None:
+            FadeAlpha += 0.05
+            if FadeAlpha > 1.0: FadeAlpha = 1.0
+        image['Fade_Layout'].opacify(FadeAlpha)
+        image['Fade_Layout'].draw(get_canvas_width()/2, get_canvas_height()/2)
+
+    if ChangeScene is not None and FadeAlpha is 1.0:
+        if ChangeScene == DetailWeatherScene.name:
+            DetailWeatherScene.city = city
+            Framework.change_state(DetailWeatherScene)
+        elif ChangeScene == MapWeatherScene.name:
+            Framework.change_state(MapWeatherScene)
+    elif EnterScene and FadeAlpha is 0.0: EnterScene = False
     pass
 
 
@@ -196,6 +219,7 @@ def Scene_draw():
 def draw():
     clear_canvas()
     Scene_draw()
+    Scene_Fade_draw()
     update_canvas()
     pass
 

@@ -10,15 +10,15 @@ else:
 
 from pico2d import *
 import Framework
-#import SimpleWeatherScene
+import SimpleWeatherScene
 #import MapWeatherScene
-import DetailWeatherScene
+#import DetailWeatherScene
 import Load
 
 open_canvas(452, 650, 60, caption='미세한 날씨')
 Load.PrePareResource()
 
-Framework.run(DetailWeatherScene)
+Framework.run(SimpleWeatherScene)
 
 Load.ReleaseResource()
 close_canvas()

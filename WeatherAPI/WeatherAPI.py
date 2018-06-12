@@ -456,6 +456,10 @@ class Weather24HInformation:
             w, h = Load.font[18].getpixelSize_unicode(T)
             CenterPointX, CenterPointY = get_canvas_width() * 0.13 + (get_canvas_width() * 0.1 + 5)*i, self.__TempratureY_Current[i] + h / 2
             Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, T, (124, 124, 124))
+            if i < 7:
+                x1,y1 = CenterPointX, CenterPointY
+                x2,y2 = get_canvas_width() * 0.13 + (get_canvas_width() * 0.1 + 5) * (i + 1) , self.__TempratureY_Current[i + 1] + h / 2
+                draw_line(x1,y1,x2,y2, (127,127,127,255))
 
             CenterPointX -= 10
             CenterPointY = get_canvas_height() * 0.13

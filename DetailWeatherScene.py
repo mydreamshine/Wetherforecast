@@ -8,12 +8,17 @@ image, font, weather, weather24H = None, None, None, None
 MouseX, MouseY = 0, 0
 city = "시흥"
 
+FadeAlpha = 0.0
+ChangeScene = None
+EnterScene = True
+
 KhaiCurrentX = 0
 FrictionFactor = 0.03
 
 
 def enter():
     global image, font, weather, weather24H, KhaiCurrentX
+    global FadeAlpha, ChangeScene, EnterScene
     KhaiCurrentX = 0
     font = Load.font
     image = Load.image
@@ -21,6 +26,10 @@ def enter():
     weather24H = Load.Weather24H
     weather[city].Update(city)
     weather24H.Update(city)
+
+    FadeAlpha = 1.0
+    ChangeScene = None
+    EnterScene = True
     pass
 
 
@@ -37,7 +46,7 @@ def resume():
 
 
 def handle_events():
-    global MouseX, MouseY
+    global MouseX, MouseY, ChangeScene
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -54,11 +63,31 @@ def handle_events():
             CenterPointX, CenterPointY = get_canvas_width() / 2, 550 + h / 2
             x1, y1, x2, y2 = Load.GetCorners(CenterPointX, CenterPointY, width, height)
             if Load.PointInRect(x1, y1, x2, y2, MouseX, MouseY):
-                Framework.change_state(SimpleWeatherScene)
+                ChangeScene = SimpleWeatherScene.name
     pass
 
 
 def update():
+    pass
+
+
+def Scene_Fade_draw():
+    global image, FadeAlpha, ChangeScene, EnterScene
+
+    if EnterScene or ChangeScene is not None:
+        if EnterScene:
+            FadeAlpha -= 0.05
+            if FadeAlpha < 0.0: FadeAlpha = 0.0
+        elif ChangeScene is not None:
+            FadeAlpha += 0.03
+            if FadeAlpha > 1.0: FadeAlpha = 1.0
+        image['Fade_Layout'].opacify(FadeAlpha)
+        image['Fade_Layout'].draw(get_canvas_width()/2, get_canvas_height()/2)
+
+    if ChangeScene is not None and FadeAlpha is 1.0:
+        if ChangeScene == SimpleWeatherScene.name:
+            Framework.change_state(SimpleWeatherScene)
+    elif EnterScene and FadeAlpha is 0.0: EnterScene = False
     pass
 
 
@@ -73,34 +102,39 @@ def Scene_draw():
     KhaiValue = weather[city].getkhaiValue()
     KhaiState = weather[city].getkhaiState()
 
-    s = str(KhaiValue)
     # 통합 대기 정보 그리기
     a = " 간편대기 "
     w, h = Load.font[18].getpixelSize_unicode(a)
     CenterPointX, CenterPointY = get_canvas_width() / 2, 550 + h / 2
-    if int(s) < 50:
-        image['MainButton_Blue'].draw(CenterPointX, CenterPointY)
-        Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (77, 173, 255))
-    if 50 < int(s) and int(s) <= 100:
+
+    if KhaiValue is not None:
+        s = str(KhaiValue)
+        if int(s) < 50:
+            image['MainButton_Blue'].draw(CenterPointX, CenterPointY)
+            Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (77, 173, 255))
+        if 50 < int(s) and int(s) <= 100:
+            image['MainButton_Green'].draw(CenterPointX, CenterPointY)
+            Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (0, 197, 24))
+        if 100 < int(s) and int(s) <= 250:
+            image['MainButton_Caution'].draw(CenterPointX, CenterPointY)
+            Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (253, 161, 99))
+        if 250 < int(s):
+            image['MainButton_Bad'].draw(CenterPointX, CenterPointY)
+            Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (255, 93, 93))
+
+        w, h = Load.font[55].getpixelSize_unicode(s)
+        CenterPointX, CenterPointY = get_canvas_width() / 2, get_canvas_height()*(3/4)
+        if int(s) < 50:
+            Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (77, 173, 255))
+        if 50< int(s) and int(s)<=100:
+            Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (0, 197, 24))
+        if 100< int(s) and int(s)<=250:
+            Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (253, 161, 99))
+        if 250< int(s):
+            Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (255, 93, 93))
+    else:
         image['MainButton_Green'].draw(CenterPointX, CenterPointY)
         Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (0, 197, 24))
-    if 100 < int(s) and int(s) <= 250:
-        image['MainButton_Caution'].draw(CenterPointX, CenterPointY)
-        Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (253, 161, 99))
-    if 250 < int(s):
-        image['MainButton_Bad'].draw(CenterPointX, CenterPointY)
-        Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (255, 93, 93))
-
-    w, h = Load.font[55].getpixelSize_unicode(s)
-    CenterPointX, CenterPointY = get_canvas_width() / 2, get_canvas_height()*(3/4)
-    if int(s) < 50:
-        Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (77, 173, 255))
-    if 50< int(s) and int(s)<=100:
-        Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (0, 197, 24))
-    if 100< int(s) and int(s)<=250:
-        Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (253, 161, 99))
-    if 250< int(s):
-        Load.font[55].draw_unicode(CenterPointX - w / 2, CenterPointY, s, (255, 93, 93))
 
 
     w, h = Load.font[21].getpixelSize_unicode(KhaiState)
@@ -113,7 +147,6 @@ def Scene_draw():
         Load.font[21].draw_unicode(CenterPointX - w / 2 - 35, CenterPointY, KhaiState, (253, 161, 99))
     if KhaiState == "매우나쁨 ":
         Load.font[21].draw_unicode(CenterPointX - w / 2 - 35, CenterPointY, KhaiState, (255, 93, 93))
-
 
     if KhaiState == "측정정보없음":
         m = "측정정보없음"
@@ -138,6 +171,9 @@ def Scene_draw():
     Color = (77, 173, 255)
     CenterPointX, CenterPointY = 65, get_canvas_height() / 2 -20
     image['Line_DustGood'].draw(CenterPointX, CenterPointY)
+
+    if KhaiValue is None: KhaiValue = 0
+
     if(KhaiValue<50):
         CenterPointX = CenterPointX-image['Line_DustGood'].w/2 + KhaiValue*image['Line_DustGood'].w/50
         KhaiCurrentX += (CenterPointX - KhaiCurrentX) * FrictionFactor
@@ -191,5 +227,6 @@ def Scene_draw():
 def draw():
     clear_canvas()
     Scene_draw()
+    Scene_Fade_draw()
     update_canvas()
     pass
