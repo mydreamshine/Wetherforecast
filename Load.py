@@ -83,14 +83,16 @@ image = None
 font = None
 Weather = None
 WeatherSub = None
+Weather24H = None
 
 
 def PrePareResource():
-    global image, font, Weather, WeatherSub
+    global image, font, Weather, WeatherSub, Weather24H
     image = LoadImageFrom("Data\\Bin\\ResourcePath.json")
     font = LoadFontFrom("Data\\Font\\malgun.ttf")
     Weather = CreateEmptyWeather()
     WeatherSub = CreateEmptyWeatherSub()
+    Weather24H = WeatherAPI.Weather24HInformation(None, get_canvas_width()/2, (get_canvas_height()/2)*(3/8), get_canvas_width()*0.95, (get_canvas_height()/2)*(3/4))
 
 
 __index = 0

@@ -144,28 +144,28 @@ def getWeatherTomorrow(address, OffsetDay=0, OffsetHour=0):  # 내일 내일 모
     gridy = "&gridy=" + str(ny)
     api_url = url+gridx+gridy
 
-    T, S, P = None, None, None
+    T, S, P = None, None, None#온도, 하늘상태 강우량
     data = urllib.request.urlopen(api_url).read().decode('utf8')
 
     # 동네예보 API에서 일시적인 ERROR가 났을 경우.
     data_dict = xmltodict.parse(data)
-    if data_dict["response"]["header"]["resultMsg"] == 'SERVICE ACCESS DENIED ERROR.':
-        return T, S, P
-    data_list = data_dict['wid']['body']['data']
-    # print(data_list)
+    try:
+        data_list = data_dict['wid']['body']['data']
+        # print(data_list)
 
-    # 업데이트 되는 API 날씨정보는 매일 오전 6시에 업데이트 된다.
-    # day값은 24:00가 넘어가면 Day+1, Day+2 밖에 남지 않게 된다.
-    # 즉, 00:00 ~ 06:00까지는 day값이 0이 아닌 1이 된다.
-    if data_list[0]['day'] != 0:
-        OffsetDay = min(OffsetDay + 1, 2)
+        # 업데이트 되는 API 날씨정보는 매일 오전 6시에 업데이트 된다.
+        # day값은 24:00가 넘어가면 Day+1, Day+2 밖에 남지 않게 된다.
+        # 즉, 00:00 ~ 06:00까지는 day값이 0이 아닌 1이 된다.
+        if int(data_list[0]['day']) != 0:
+            OffsetDay = min(OffsetDay + 1, 2)
 
-    T, S, P = None, None, None
-    for dict in data_list:
-        if dict['day'] == str(OffsetDay) and dict['hour'] == str(OffsetHour):
-            T, S, P = float(dict['temp']), int(dict['sky']), int(dict['pty'])
-            break
-
+        T, S, P = None, None, None
+        for dict in data_list:
+            if dict['day'] == str(OffsetDay) and dict['hour'] == str(OffsetHour):
+                T, S, P = float(dict['temp']), int(dict['sky']), int(dict['pty'])
+                break
+    except:
+        return None, None, None
     return T, S, P
 
 
@@ -226,6 +226,9 @@ class WeatherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
         self.__temperature = None
         self.__skyValue = None
         self.__ptyValue = None
+        self.__H24Temperature = list()
+        self.__H24SkyValue = list()
+        self.__H24PtyValue = list()
         if Address:
             self.Update(Address, OffsetDay=0, OffsetHour=0)
 
@@ -233,7 +236,7 @@ class WeatherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
     def Update(self, Address, OffsetDay=0, OffsetHour=0):
 
         # 오늘 날짜와 시간 부여(Offset에 따라 증가된 날짜 시간 부여 가능)
-        self.__address, self.__day = Address, datetime.today() + timedelta(days=OffsetDay,hours=OffsetHour)
+        self.__address, self.__day = Address, datetime.today() + timedelta(days=OffsetDay, hours=OffsetHour)
 
         # 통합대기수치값과 미세먼지농도 부여
         start = timeit.default_timer()
@@ -246,7 +249,31 @@ class WeatherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
             self.__temperature, self.__skyValue, self.__ptyValue = getWeatherToday(Address)
             print("getWeatherToday() 실행시간:", timeit.default_timer() - start)
         else:
-            self.__temperature, self.__skyValue, self.__ptyValue = getWeatherTomorrow(Address, OffsetDay, OffsetHour)
+            self.__temperature, self.__skyValue, self.__ptyValue = getWeatherTomorrow(Address, OffsetDay, self.__day.hour + OffsetHour)
+
+    def Update_24H(self, Address):
+        self.__address = Address
+
+        if self.__temperature is None or self.__skyValue is None or self.__ptyValue is None:
+            self.__temperature, self.__skyValue, self.__ptyValue = getWeatherToday(Address)
+
+        for i in range(1, 8):
+            OffsetToday = self.__day + timedelta(hours=i*3)
+            Normalize3H = OffsetToday.hour + (3 - (OffsetToday.hour % 3)) if OffsetToday.hour % 3 != 0 else OffsetToday.hour
+            OffsetDay =  OffsetToday.day - self.__day.day
+            T, S, P = getWeatherTomorrow(Address, OffsetDay, Normalize3H)
+            self.__H24Temperature.append(T)
+            self.__H24SkyValue.append(S)
+            self.__H24PtyValue.append(P)
+
+    def get24HTemperature(self):
+        return self.__H24Temperature
+
+    def get24HSkyValue(self):
+        return self.__H24SkyValue
+
+    def get24HPtyValue(self):
+        return self.__H24PtyValue
 
     def getAdress(self):
         return self.__address
@@ -379,4 +406,16 @@ class WeatherInformationSub:
         Load.font[10].draw(self.x-w/2-1, self.y-interval_height+h/2+4, str(t), (255, 0, 0))
 
 
+class Weather24HInformation:
 
+    def __init__(self, city, x, y, width, height):
+        self.city = city
+        self.x, self.y = x, y
+        self.width, self.height = width, height
+
+    def Update(self, city):
+        self.city = city
+        Load.Weather[self.city].Update_24H(self.city)
+
+    def draw(self):
+        pass
