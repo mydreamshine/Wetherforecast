@@ -85,10 +85,7 @@ def handle_events():
             buttonX, buttonY = get_canvas_width() / 2, get_canvas_height() / 10.5
             Buttonx1, Buttony1, Buttonx2, Buttony2 = Load.GetCorners(buttonX, buttonY, buttonW, buttonH)
             if Load.PointInRect(Buttonx1, Buttony1, Buttonx2, Buttony2, MouseX, MouseY):
-                weather[city].Update(city, OffsetDay=1)
-
-
-
+                weather[city].Update(city)
     pass
 
 

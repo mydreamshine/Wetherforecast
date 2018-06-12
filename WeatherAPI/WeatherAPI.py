@@ -5,6 +5,9 @@ import json
 import timeit
 from datetime import datetime
 from datetime import timedelta
+
+from pico2d import*
+
 import Load
 
 Addr = dict()
@@ -257,9 +260,10 @@ class WeatherInformation:  # 지역에 따른 현재 통합대기상태, 미세�
         if self.__temperature is None or self.__skyValue is None or self.__ptyValue is None:
             self.__temperature, self.__skyValue, self.__ptyValue = getWeatherToday(Address)
 
-        for i in range(1, 8):
+        for i in range(1, 9):
             OffsetToday = self.__day + timedelta(hours=i*3)
             Normalize3H = OffsetToday.hour + (3 - (OffsetToday.hour % 3)) if OffsetToday.hour % 3 != 0 else OffsetToday.hour
+            Normalize3H = 24 if Normalize3H is 0 else Normalize3H
             OffsetDay =  OffsetToday.day - self.__day.day
             T, S, P = getWeatherTomorrow(Address, OffsetDay, Normalize3H)
             self.__H24Temperature.append(T)
@@ -407,15 +411,69 @@ class WeatherInformationSub:
 
 
 class Weather24HInformation:
-
-    def __init__(self, city, x, y, width, height):
-        self.city = city
-        self.x, self.y = x, y
-        self.width, self.height = width, height
+    def __init__(self, city):
+        self.__city = city
+        self.__Temperature24H = None
+        self.__SkyValue24H = None
+        self.__PtyValue24H = None
+        self.__TempratureY_Current = list()
+        self.__TempratureY_Dest = list()
+        self.__CurrentHour = None
 
     def Update(self, city):
-        self.city = city
-        Load.Weather[self.city].Update_24H(self.city)
+        self.__city = city
+        Load.Weather[self.__city].Update_24H(self.__city)
+        self.__Temperature24H = Load.Weather[self.__city].get24HTemperature()
+        self.__SkyValue24H = Load.Weather[self.__city].get24HSkyValue()
+        self.__PtyValue24H = Load.Weather[self.__city].get24HPtyValue()
+        self.__CurrentHour = Load.Weather[self.__city].getDay()
+
+        Temperature_Max = max(self.__Temperature24H)
+        Temperature_Min = min(self.__Temperature24H)
+        TemperatureRange = Temperature_Max - min(self.__Temperature24H)
+        MinY = get_canvas_height() * 0.14
+        Height = get_canvas_height() * 0.25 - MinY
+        self.__TempratureY_Current.clear()
+        self.__TempratureY_Dest.clear()
+        for i in range(0, 8):
+            self.__TempratureY_Current.append(MinY + Height * 0.5)
+            self.__TempratureY_Dest.append(MinY + Height * (self.__Temperature24H[i] - Temperature_Min) / TemperatureRange)
+
 
     def draw(self):
+        CenterPointX, CenterPointY = get_canvas_width() * 0.5, get_canvas_height() * 0.38
+        Load.image['Line_TimelyWether'].draw(CenterPointX, CenterPointY)
+
+        a = '시간별대기예보       '
+        w, h = Load.font[18].getpixelSize_unicode(a)
+        CenterPointX, CenterPointY = get_canvas_width() * 0.1, get_canvas_height() * 0.32 + h / 2
+        Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, a, (124, 124, 124))
+
+        for i in range(0, 8):
+            if abs(self.__TempratureY_Dest[i] - self.__TempratureY_Current[i]) > 0.000001:
+                self.__TempratureY_Current[i] += (self.__TempratureY_Dest[i] - self.__TempratureY_Current[i]) * 0.03
+            T = str(int(self.__Temperature24H[i])) + '˚  '
+            w, h = Load.font[18].getpixelSize_unicode(T)
+            CenterPointX, CenterPointY = get_canvas_width() * 0.13 + (get_canvas_width() * 0.1 + 5)*i, self.__TempratureY_Current[i] + h / 2
+            Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, T, (124, 124, 124))
+
+            CenterPointX -= 10
+            CenterPointY = get_canvas_height() * 0.13
+            H = (self.__CurrentHour + timedelta(hours=i*3)).hour
+            if self.__PtyValue24H[i] is 0:
+                if self.__SkyValue24H[i] is 3 or self.__SkyValue24H[i] is 4:
+                    Load.image['Cloud_small'].draw(CenterPointX, CenterPointY)
+                elif 6 < H < 18:
+                    Load.image['Sun_small'].draw(CenterPointX, CenterPointY)
+                else:
+                    Load.image['Moon_small'].draw(CenterPointX, CenterPointY)
+            elif self.__PtyValue24H[i] is 1 or self.__PtyValue24H[i] is 2:
+                Load.image['Rain_small'].draw(CenterPointX, CenterPointY)
+            else:
+                Load.image['Snow_small'].draw(CenterPointX, CenterPointY)
+
+            strH = '0' + str(H) if H < 10 else str(H)
+            w, h = Load.font[18].getpixelSize_unicode(strH)
+            CenterPointY = get_canvas_height() * 0.07
+            Load.font[18].draw_unicode(CenterPointX - w / 2, CenterPointY, strH, (124, 124, 124))
         pass

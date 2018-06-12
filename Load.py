@@ -92,7 +92,7 @@ def PrePareResource():
     font = LoadFontFrom("Data\\Font\\malgun.ttf")
     Weather = CreateEmptyWeather()
     WeatherSub = CreateEmptyWeatherSub()
-    Weather24H = WeatherAPI.Weather24HInformation(None, get_canvas_width()/2, (get_canvas_height()/2)*(3/8), get_canvas_width()*0.95, (get_canvas_height()/2)*(3/4))
+    Weather24H = WeatherAPI.Weather24HInformation(None)
 
 
 __index = 0
